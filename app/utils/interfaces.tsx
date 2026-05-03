@@ -5,29 +5,16 @@ export interface IIngredient {
   possibleUnits: string[];
 }
 
-export interface IRecipeIngredient {
-  aisle: string;
-  amount: number;
+export interface ISlimRecipe {
   id: number;
-  image: string;
-  meta: string[];
-  name: string;
-  original: string;
-  originalName: string;
-  unit: string;
-  unitLong: string;
-  unitShort: string;
-}
-
-export interface IRecipe {
-  id: number;
+  title: string;
   image: string;
   imageType: string;
-  likes: number;
-  missedIngredientCount: number;
-  missedIngredients: IRecipeIngredient[];
-  title: string;
-  unusedIngredients: IRecipeIngredient[];
-  usedIngredientCount: number;
-  usedIngredients: IRecipeIngredient[];
+}
+
+export interface IRecipeSearchResponse {
+  results: ISlimRecipe[];
+  number: number;
+  totalResults: number;
+  offset: number;
 }

@@ -1,19 +1,11 @@
 "use client";
-import {
-  Box,
-  Button,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  Typography,
-} from "@mui/material";
+import { Box, Button, Pagination, Typography } from "@mui/material";
 import IngredientSearch from "./components/IngredientSearch";
-import { IIngredient, IRecipe } from "./utils/interfaces";
-import { useEffect, useState } from "react";
+import { IIngredient, IRecipeSearchResponse } from "./utils/interfaces";
+import { useCallback, useEffect, useState } from "react";
 import useSpoonacular from "./hooks/useSpoonacular";
 import { AxiosResponse } from "axios";
-import RecipeListPanel from "./components/RecipeListPanel";
+import IngredientCard from "./components/IngredientCard";
 
 export default function Home() {
   const [componentMounted, setComponentMounted] = useState(false);
@@ -25,26 +17,32 @@ export default function Home() {
     [],
   );
 
-  const [count, setCount] = useState<number>(5);
-  const [fetchedRecipes, setFetchedRecipes] = useState<IRecipe[]>([]);
+  const [recipeResponse, setRecipeResponse] =
+    useState<IRecipeSearchResponse | null>(null);
   const spoonacularInstance = useSpoonacular();
 
-  const fetchRecipes = () => {
-    const queryString = selectedIngredients
-      .map((ingredient) => ingredient.name)
-      .join(",+");
+  const fetchRecipes = useCallback(
+    (offset: number) => {
+      const queryString = selectedIngredients
+        .map((ingredient) => ingredient.name)
+        .join(",");
 
-    spoonacularInstance
-      .get(
-        `/recipes/findByIngredients?ingredients=${queryString}&number=${count}&ranking=1`,
-      )
-      .then((res: AxiosResponse<IRecipe[]>) => {
-        setFetchedRecipes(res.data);
-      });
-  };
+      spoonacularInstance
+        .get(
+          `/recipes/complexSearch?includeIngredients=${queryString}&number=10&offset=${(offset - 1) * 10}`,
+        )
+        .then((res: AxiosResponse<IRecipeSearchResponse>) => {
+          setRecipeResponse(res.data);
+        });
+    },
+    [selectedIngredients, spoonacularInstance],
+  );
 
   useEffect(() => {
-    // We are guaranteeing only one render because of the empty dependencies array, so disabling this
+    // Find a recipe button disabled is being calculated based selectedIngredients, which does not exist yet
+    // during SSR, so adding a flag for component mounted
+
+    // We are guaranteeing only one render because of the empty dependencies array, so disabling this warning
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setComponentMounted(true);
   }, []);
@@ -52,46 +50,65 @@ export default function Home() {
   return (
     <>
       {componentMounted && (
-        <Box>
-          <Box className="title-container">
+        <Box
+          sx={(theme) => ({
+            background: theme.palette.background.paper,
+            width: "70%",
+            display: "flex",
+            margin: "auto",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: "10px"
+          })}
+        >
+          <Box className="title-container" sx={{ textAlign: "center" }}>
             <Typography variant="h5">Plate My Pantry</Typography>
             <Typography variant="body1">{tagline}</Typography>
           </Box>
-          <Box>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              flexDirection: "column",
+              textAlign: "center",
+            }}
+          >
             <Typography variant="body1">Add your ingredients</Typography>
-            <Box sx={{ display: "flex", gap: "10px" }}>
-              <IngredientSearch
-                sx={{ width: "300px" }}
-                selectedIngredients={selectedIngredients}
-                setSelectedIngredients={setSelectedIngredients}
-              />
-              <FormControl sx={{ width: "100px" }}>
-                <InputLabel id="">Count</InputLabel>
-                <Select
-                  defaultValue={5}
-                  value={count}
-                  onChange={(e) => {
-                    setCount(e.target.value as number);
-                  }}
-                >
-                  <MenuItem value={5}>5</MenuItem>
-                  <MenuItem value={10}>10</MenuItem>
-                  <MenuItem value={15}>15</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
+            <IngredientSearch
+              sx={{ width: "300px" }}
+              selectedIngredients={selectedIngredients}
+              setSelectedIngredients={setSelectedIngredients}
+            />
             <Button
               disabled={selectedIngredients.length === 0}
               onClick={() => {
-                fetchRecipes();
+                fetchRecipes(1);
               }}
             >
               Find a recipe!
             </Button>
           </Box>
-          <Box>
-            <RecipeListPanel fetchedRecipes={fetchedRecipes} />
-          </Box>
+          {!!recipeResponse && (
+            <>
+              <Box>
+                {recipeResponse.results.map((recipe, index) => {
+                  return (
+                    <IngredientCard
+                      key={recipe.title + index}
+                      recipe={recipe}
+                    />
+                  );
+                })}
+              </Box>
+              <Pagination
+                onChange={(_, pg) => {
+                  fetchRecipes(pg);
+                }}
+                count={Math.ceil(recipeResponse?.totalResults / 10)}
+              />
+            </>
+          )}
         </Box>
       )}
     </>
