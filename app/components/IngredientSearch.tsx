@@ -2,7 +2,6 @@
 import {
   Autocomplete,
   Box,
-  Button,
   SxProps,
   TextField,
   Typography,
@@ -11,15 +10,16 @@ import useSpoonacular from "../hooks/useSpoonacular";
 import { Dispatch, SetStateAction, useState } from "react";
 import { IIngredient } from "../utils/interfaces";
 import { AxiosResponse } from "axios";
+import { useToast } from "../hooks/useToast";
 
 export default function IngredientSearch({
   selectedIngredients,
   setSelectedIngredients,
-  sx
+  sx,
 }: {
   selectedIngredients: IIngredient[];
   setSelectedIngredients: Dispatch<SetStateAction<IIngredient[]>>;
-  sx?: SxProps
+  sx?: SxProps;
 }) {
   const spoonacularInstance = useSpoonacular();
 
@@ -28,13 +28,27 @@ export default function IngredientSearch({
 
   const [open, setOpen] = useState(false);
 
+  const { toast } = useToast();
+  
   const searchIngredients = async (searchTerm: string) => {
-    spoonacularInstance
-      .get(`/food/ingredients/autocomplete?query=${searchTerm}`)
-      .then((res: AxiosResponse<IIngredient[]>) => {
-        setResults(res.data);
-        setOpen(true);
-      });
+    if (searchTerm.trim() !== "") {
+      spoonacularInstance
+        .get(`/food/ingredients/autocomplete?query=${searchTerm}`)
+        .then((res: AxiosResponse<IIngredient[]>) => {
+          setResults(res.data);
+          setOpen(true);
+        })
+        .catch((err) => {
+          let errorMsg = ""
+          if (err.response.status === 402) {
+            errorMsg = "API quota reached. Please try again later."
+          } else {
+            errorMsg = "Internal Server Error"
+          }
+
+          toast(errorMsg, { severity: 'error'})
+        });
+    }
   };
 
   const onSearchChange = (newValue: string) => {
@@ -48,19 +62,21 @@ export default function IngredientSearch({
 
   return (
     <Box sx={sx}>
+      <Typography variant="body1">Add your ingredients</Typography>
       <Autocomplete
         open={open}
         disableCloseOnSelect={true}
         clearOnEscape={false}
         clearOnBlur={false}
         multiple
+        filterOptions={(opt) => opt}
         onInputChange={(_, newValue, reason) => {
           if (reason === "input") {
             onSearchChange(newValue);
           }
         }}
         onKeyDown={(e) => {
-          if (e.key === "Enter") {
+          if (e.key === "Enter" && !open) {
             e.preventDefault();
             searchIngredients(inputValue);
           }
