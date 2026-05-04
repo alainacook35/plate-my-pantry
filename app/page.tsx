@@ -1,65 +1,116 @@
-import Image from "next/image";
+"use client";
+import { Box, Button, Pagination, Typography } from "@mui/material";
+import IngredientSearch from "./components/IngredientSearch";
+import { IIngredient, IRecipeSearchResponse } from "./utils/interfaces";
+import { useCallback, useEffect, useState } from "react";
+import useSpoonacular from "./hooks/useSpoonacular";
+import { AxiosResponse } from "axios";
+import IngredientCard from "./components/IngredientCard";
 
 export default function Home() {
+  const [componentMounted, setComponentMounted] = useState(false);
+
+  const tagline =
+    "Tell us what's in your fridge. We'll tell you what's cooking.";
+
+  const [selectedIngredients, setSelectedIngredients] = useState<IIngredient[]>(
+    [],
+  );
+
+  const [recipeResponse, setRecipeResponse] =
+    useState<IRecipeSearchResponse | null>(null);
+  const spoonacularInstance = useSpoonacular();
+
+  const fetchRecipes = useCallback(
+    (offset: number) => {
+      const queryString = selectedIngredients
+        .map((ingredient) => ingredient.name)
+        .join(",");
+
+      spoonacularInstance
+        .get(
+          `/recipes/complexSearch?includeIngredients=${queryString}&number=10&offset=${(offset - 1) * 10}`,
+        )
+        .then((res: AxiosResponse<IRecipeSearchResponse>) => {
+          setRecipeResponse(res.data);
+        });
+    },
+    [selectedIngredients, spoonacularInstance],
+  );
+
+  useEffect(() => {
+    // Find a recipe button disabled is being calculated based selectedIngredients, which does not exist yet
+    // during SSR, so adding a flag for component mounted
+
+    // We are guaranteeing only one render because of the empty dependencies array, so disabling this warning
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setComponentMounted(true);
+  }, []);
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <>
+      {componentMounted && (
+        <Box
+          sx={(theme) => ({
+            background: theme.palette.background.paper,
+            width: "70%",
+            display: "flex",
+            margin: "auto",
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+            padding: "10px"
+          })}
+        >
+          <Box className="title-container" sx={{ textAlign: "center" }}>
+            <Typography variant="h5">Plate My Pantry</Typography>
+            <Typography variant="body1">{tagline}</Typography>
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              flexDirection: "column",
+              textAlign: "center",
+            }}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+            <Typography variant="body1">Add your ingredients</Typography>
+            <IngredientSearch
+              sx={{ width: "300px" }}
+              selectedIngredients={selectedIngredients}
+              setSelectedIngredients={setSelectedIngredients}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+            <Button
+              disabled={selectedIngredients.length === 0}
+              onClick={() => {
+                fetchRecipes(1);
+              }}
+            >
+              Find a recipe!
+            </Button>
+          </Box>
+          {!!recipeResponse && (
+            <>
+              <Box>
+                {recipeResponse.results.map((recipe, index) => {
+                  return (
+                    <IngredientCard
+                      key={recipe.title + index}
+                      recipe={recipe}
+                    />
+                  );
+                })}
+              </Box>
+              <Pagination
+                onChange={(_, pg) => {
+                  fetchRecipes(pg);
+                }}
+                count={Math.ceil(recipeResponse?.totalResults / 10)}
+              />
+            </>
+          )}
+        </Box>
+      )}
+    </>
   );
 }
