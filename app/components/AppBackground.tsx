@@ -1,38 +1,45 @@
-'use client'
-import { useEffect, useState } from "react";
+"use client";
+import { useEffect, useMemo, useState } from "react";
 
-const backgrounds = [
-  "/backgrounds/pexels-olly-3768169.jpg",
-  "/backgrounds/pexels-rdne-10432699.jpg",
-  "/backgrounds/pexels-wally-34732196.jpg",
-];
+export default function AppBackground({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const backgrounds = useMemo(() => [
+    "/backgrounds/pexels-katerina-holmes-5908187.jpg",
+    "/backgrounds/pexels-klaus-nielsen-6287488.jpg",
+    "/backgrounds/pexels-shvetsa-12673812.jpg",
+  ], []);
 
-export default function RandomBackground({ children }: { children: React.ReactNode }) {
-  const [background, setBackground] = useState<string | null>(null);
+  const [background, setBackground] = useState<string | null>(backgrounds[0]);
 
   useEffect(() => {
-    const random = backgrounds[Math.floor(Math.random() * backgrounds.length)];
-    // We are ensuring only one render with the empty dependencies array, so disabling this warning
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setBackground(random);
-  }, []);
+    setBackground(backgrounds[Math.floor(Math.random() * backgrounds.length)]);
+  }, [backgrounds]);
 
   return (
     <div
       style={{
-        backgroundImage: background ? `url(${background})` : "none",
+        backgroundImage: background
+          ? `url(${background})`
+          : `url(${backgrounds[0]})`,
         backgroundSize: "cover",
         backgroundPosition: "center",
+        backgroundAttachment: "fixed",
         minHeight: "100vh",
+        overflow: "hidden",
       }}
     >
       <div
-      style={{
-        backdropFilter: "blur(6px)",
-        minHeight: "100vh",
-      }}
-    >
-      {children}
+        style={{
+          backdropFilter: "blur(6px)",
+          minHeight: "100vh",
+          overflow: "hidden",
+        }}
+      >
+        {children}
       </div>
     </div>
   );

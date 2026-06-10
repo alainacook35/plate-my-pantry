@@ -1,8 +1,34 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import {
+  Geist,
+  Geist_Mono,
+  Leckerli_One,
+  Noto_Sans_Display,
+} from "next/font/google";
 import "./globals.css";
 import ThemeRegistry from "./components/ThemeRegistry";
-import RandomBackground from "./components/AppBackground";
+import AppBackground from "./components/AppBackground";
+import Loading from "./components/Loading";
+import TransparentLoading from "./components/TransparentLoading";
+import { ToastProvider } from "./contexts/ToastProvider";
+
+const leckerliOne = Leckerli_One({
+  variable: "--font-leckerli-one",
+  subsets: ["latin"],
+  weight: "400", // Leckerli One only has one weight
+});
+
+const notoSansDisplayBold = Noto_Sans_Display({
+  variable: "--font-noto-sans-display-bold",
+  subsets: ["latin"],
+  weight: "900",
+});
+
+const notoSansDisplay = Noto_Sans_Display({
+  variable: "--font-noto-sans-display",
+  subsets: ["latin"],
+  weight: "400",
+});
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -25,10 +51,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} ${notoSansDisplay.variable} ${notoSansDisplayBold.variable}`}
+    >
       <body>
         <ThemeRegistry>
-          <RandomBackground>{children}</RandomBackground>
+          <ToastProvider>
+            <Loading>
+              <TransparentLoading>
+                <AppBackground>{children}</AppBackground>
+              </TransparentLoading>
+            </Loading>
+          </ToastProvider>
         </ThemeRegistry>
       </body>
     </html>
