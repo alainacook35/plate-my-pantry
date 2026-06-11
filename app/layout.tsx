@@ -55,7 +55,10 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${notoSansDisplay.variable} ${notoSansDisplayBold.variable}`}
     >
-      <body>
+      <head>
+        <meta name="theme-color" content="#82c0ccff" />
+      </head>
+      <body style={{ backgroundColor: "#82c0ccff"}}>
         <ThemeRegistry>
           <ToastProvider>
             <Loading>

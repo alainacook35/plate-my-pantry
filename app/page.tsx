@@ -123,9 +123,9 @@ export default function Page() {
         justifyContent: "center",
         alignItems: "center",
         padding: "20px",
-        my: "20px",
+        my: isMobile ? "40px" : "20px",
         borderRadius: "20px",
-        minHeight: "calc(100vh - 40px)",
+        minHeight: isMobile ? "calc(100vh - 80px)" : "calc(100vh - 40px)",
       })}
     >
       <Box

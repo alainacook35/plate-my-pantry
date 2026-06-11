@@ -52,7 +52,7 @@ export default function IngredientSearch({
   };
 
   const onSearchChange = (newValue: string) => {
-    if (results?.length > 0) {
+    if (!!results) {
       setResults([]);
       setOpen(false);
     }
