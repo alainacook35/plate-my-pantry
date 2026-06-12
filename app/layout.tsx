@@ -58,7 +58,7 @@ export default function RootLayout({
       <head>
         <meta name="theme-color" content="#16697a" />
       </head>
-      <body style={{ backgroundColor: "#16697a"}}>
+      <body>
         <ThemeRegistry>
           <ToastProvider>
             <Loading>

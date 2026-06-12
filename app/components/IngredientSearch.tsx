@@ -71,9 +71,15 @@ export default function IngredientSearch({
       <Box sx={{ display: "flex", gap: "5px" }}>
         <Autocomplete
           slotProps={{
+            popper: { placement: "top" },
             paper: { sx: { background: "white" } },
             root: {
-              sx: { background: "white", borderRadius: "5px", width: "100%" },
+              sx: {
+                background: "white",
+                borderRadius: "5px",
+                flex: 1,
+                minWidth: 0,
+              },
             },
           }}
           open={open}
