@@ -137,7 +137,23 @@ export default function IngredientSearch({
                 "Simply type the name of your ingredient, press enter, and select it from the provided list. Once you've added all your desired ingredients, press the Find a Recipe button to find your next meal."
               }
             </Typography>
-              <Box sx={{ marginTop: "20px", display: "flex", width: "100%", justifyContent: "center"}}><Button onClick={() => setModalOpen(false)} size="small" variant="contained" color="secondary">Get Started</Button></Box>
+            <Box
+              sx={{
+                marginTop: "20px",
+                display: "flex",
+                width: "100%",
+                justifyContent: "center",
+              }}
+            >
+              <Button
+                onClick={() => setModalOpen(false)}
+                size="small"
+                variant="contained"
+                color="secondary"
+              >
+                Get Started
+              </Button>
+            </Box>
           </Box>
         </Box>
       </Dialog>
