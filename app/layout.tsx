@@ -43,10 +43,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Plate My Pantry",
   description: "Tell us what's in your fridge. We'll tell you what's cooking.",
-  themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#FFA62B' },
-    { media: '(prefers-color-scheme: dark)', color: '#16697a' },
-  ],
 };
 
 export default function RootLayout({
@@ -59,7 +55,10 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} ${notoSansDisplay.variable} ${notoSansDisplayBold.variable}`}
     >
-      <body>
+      <head>
+        <meta name="theme-color" content="#16697a" />
+      </head>
+      <body style={{ backgroundColor: "#16697a"}}>
         <ThemeRegistry>
           <ToastProvider>
             <Loading>
